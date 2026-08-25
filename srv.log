@@ -1,7 +1,0 @@
-(node:39104) ExperimentalWarning: SQLite is an experimental feature and might change at any time
-(Use `node --trace-warnings ...` to show where the warning was created)
-2026-08-25T23:36:04.304Z Servicio de consulta escuchando en http://0.0.0.0:8080
-2026-08-25T23:36:04.311Z Token: desactivado | Solo ASCII: false
-2026-08-25T23:36:04.311Z Configuracion: D:\Proyectos Antigravity\Consulta-Ruc-Dni-Sunat\.env
-2026-08-25T23:36:04.382Z Padron: 18,352,428 filas | 2402 MB | actualizado 2026-08-25T21:10:55.767Z
-2026-08-25T23:36:04.383Z Actualizacion automatica: todos los dias a las 03:00 (la proxima en 8h 24m)

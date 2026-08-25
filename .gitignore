@@ -9,3 +9,7 @@ logs/
 # Se reconstruyen con: npm run actualizar-padron
 datos/
 *.zip
+
+# Logs de pruebas locales
+srv.log
+*.log
