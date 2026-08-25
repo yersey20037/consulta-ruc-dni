@@ -60,7 +60,7 @@ más que suficiente.
 ## Instalación
 
 ```bash
-git clone https://github.com/USUARIO/consulta-ruc-dni.git
+git clone https://github.com/yersey20037/consulta-ruc-dni.git
 cd consulta-ruc-dni
 cp .env.ejemplo .env
 npm test
