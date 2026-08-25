@@ -1,0 +1,11 @@
+node_modules/
+logs/
+
+# Configuracion local: puede llevar el API_TOKEN.
+# La plantilla versionada es .env.ejemplo
+.env
+
+# Base generada desde el padron (2.4 GB) y el ZIP de origen (391 MB).
+# Se reconstruyen con: npm run actualizar-padron
+datos/
+*.zip

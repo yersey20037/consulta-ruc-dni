@@ -1,0 +1,26 @@
+{
+  "name": "consulta-ruc-dni",
+  "version": "1.0.0",
+  "description": "API HTTP de consulta RUC/DNI en Peru sobre el Padron Reducido de SUNAT. Sin dependencias.",
+  "main": "server.js",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test/test.js",
+    "actualizar-padron": "node actualizar-padron.js"
+  },
+  "license": "MIT",
+  "keywords": [
+    "ruc",
+    "dni",
+    "sunat",
+    "peru",
+    "padron-reducido",
+    "ubigeo",
+    "api",
+    "sqlite"
+  ]
+}
