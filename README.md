@@ -97,6 +97,7 @@ curl http://localhost:8080/ping
 | `GET /ping` | Estado del servicio, del padrón y de la actualización |
 | `GET /actualizar` | Lanza la actualización ahora (responde `202`) |
 | `GET /recargar` | Reabre la base tras una actualización manual |
+| `GET /read.php?ruc=` | Formato compatible con clientes antiguos (ver abajo) |
 
 ### Respuesta de RUC
 
@@ -140,6 +141,44 @@ forma que necesite. Los campos sin dato traen `-`.
 ```
 
 El nombre viene en el orden **apellidos primero**, tal como lo publica SUNAT.
+
+### Formato compatible
+
+Para no tener que modificar clientes que ya consumían una API PHP del estilo
+`read.php?ruc=...`, el servicio expone esa misma ruta con el formato que
+esos clientes esperan:
+
+```bash
+curl "http://localhost:8080/read.php?ruc=20512963545"
+```
+
+```json
+{
+  "data": {
+    "tipoPersona": "JURIDICA",
+    "numeroDocumento": "20512963545",
+    "nombre": "ZONA INFORMATICA DIGITAL S.R.L.",
+    "estado": "BAJA DE OFICIO",
+    "condicionDomicilio": "HABIDO",
+    "tipoVia": "AV.",
+    "nombreVia": "SAN LUIS",
+    "numero": "2076",
+    "codigoZona": "",
+    "tipoZona": "",
+    "ubigeo": "150130"
+  }
+}
+```
+
+Diferencias con el formato propio: los datos van anidados bajo `data`, los
+nombres son camelCase, y cuando no hay resultado devuelve el texto literal
+`false` en vez de un JSON de error.
+
+`tipoPersona` no viene en el padrón: se deduce del RUC (los que empiezan en
+`10`, `15` o `17` son personas naturales; el resto, jurídicas).
+
+Acepta `?ruc=` o `?dni=`, con o sin la extensión `.php`. Ambos formatos
+funcionan a la vez contra la misma base.
 
 ### Códigos HTTP
 
@@ -378,6 +417,7 @@ src/padron.js           descarga, carga a SQLite y consulta
 src/ubigeo.js           catalogo INEI: ubigeo -> distrito/provincia/depto
 src/programador.js      actualizacion diaria automatica
 src/formato.js          saneado, parser de direccion, formato de salida
+src/compat.js           formato compatible para clientes antiguos
 test/test.js            pruebas (no tocan la red ni la base)
 datos/padron.db         base SQLite (generada)
 ```

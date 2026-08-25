@@ -4,6 +4,7 @@ const http = require('http');
 const cfg = require('./src/config');   // lee .env antes que nada
 const padron = require('./src/padron');
 const { programar } = require('./src/programador');
+const compat = require('./src/compat');
 const { formatoRuc, formatoDni } = require('./src/formato');
 
 // ---------------- CONFIGURACION ----------------
@@ -63,6 +64,32 @@ const servidor = http.createServer(async (req, res) => {
       padron.recargar();
       log('padron recargado');
       return responder(res, 200, { success: true, padron: padron.estado() });
+    }
+
+    // Compatibilidad con clientes que llamaban a una API PHP:
+    //   GET /read.php?ruc=20512963545
+    // Devuelve el JSON anidado bajo `data` con nombres en camelCase.
+    // El formato propio (/ruc/, /dni/) no cambia.
+    if (/^\/read(\.php)?$/i.test(ruta)) {
+      if (TOKEN && tokenRecibido(req, url) !== TOKEN) {
+        return responder(res, 401, { success: false, message: 'Token invalido' });
+      }
+
+      const doc = String(url.searchParams.get('ruc') || url.searchParams.get('dni') || '').trim();
+      if (!/^\d{8}$|^\d{11}$/.test(doc)) {
+        // El cliente antiguo trata cualquier cosa que no sea un JSON valido
+        // como "no encontrado", y espera el texto 'false'.
+        return responderTexto(res, 200, 'false');
+      }
+
+      const tipoDoc = doc.length === 11 ? 'ruc' : 'dni';
+      const datos = await consultar(tipoDoc, doc);
+      if (!datos) return responderTexto(res, 200, 'false');
+
+      res.setHeader('X-Tiempo-Ms', String(Date.now() - inicio));
+      return responder(res, 200, tipoDoc === 'ruc'
+        ? compat.respuestaRuc(datos, doc)
+        : compat.respuestaDni(datos, doc));
     }
 
     const m = /^\/(ruc|dni)\/(\d+)$/i.exec(ruta);
@@ -143,6 +170,17 @@ function responder(res, status, cuerpo) {
     'Content-Length': Buffer.byteLength(json),
   });
   res.end(json);
+}
+
+// El cliente antiguo espera el texto literal 'false' cuando no hay datos,
+// no un JSON de error.
+function responderTexto(res, status, texto) {
+  res.writeHead(status, {
+    'Content-Type': 'text/plain; charset=utf-8',
+    'Cache-Control': 'no-store',
+    'Content-Length': Buffer.byteLength(texto),
+  });
+  res.end(texto);
 }
 
 function log(...args) {

@@ -115,6 +115,32 @@ const tarea = programar('03:00', () => {}, () => {});
 ok(tarea !== null, 'hora valida programada');
 if (tarea) tarea.cancelar();
 
+console.log('\n=== FORMATO COMPATIBLE (read.php) ===');
+const compat = require('../src/compat');
+
+ok(compat.tipoPersona('20512963545') === 'JURIDICA', 'RUC 20 -> JURIDICA');
+ok(compat.tipoPersona('10452159428') === 'NATURAL', 'RUC 10 -> NATURAL');
+ok(compat.tipoPersona('15100000001') === 'NATURAL', 'RUC 15 -> NATURAL');
+ok(compat.tipoPersona('16100000001') === 'JURIDICA', 'RUC 16 -> JURIDICA');
+
+const base = formatoRuc(emp, '20131312955');
+const cmp = compat.respuestaRuc(base, '20131312955').data;
+const clavesCompat = ['tipoPersona','numeroDocumento','nombre','estado','condicionDomicilio',
+  'tipoVia','nombreVia','numero','codigoZona','tipoZona','ubigeo'];
+ok(clavesCompat.every((k) => k in cmp), 'estan las 11 claves que espera el cliente antiguo');
+ok(cmp.nombre === base.nombre_o_razon_social, 'nombre mapeado');
+ok(cmp.estado === base.estado_del_contribuyente, 'estado mapeado');
+ok(cmp.condicionDomicilio === base.condicion_de_domicilio, 'condicionDomicilio mapeado');
+ok(cmp.tipoVia === 'AV.' && cmp.nombreVia === 'GARCILASO DE LA VEGA', 'via mapeada');
+
+// El '-' del padron significa "sin dato": no debe llegar al cliente.
+const conGuiones = compat.respuestaRuc({ ...base, codigo_de_zona: '-', tipo_de_zona: '-' }, '20131312955').data;
+ok(conGuiones.codigoZona === '' && conGuiones.tipoZona === '', "los '-' salen vacios");
+
+const cmpDni = compat.respuestaDni({ nombre: 'PEREZ GARCIA JUAN' }, '43451826').data;
+ok(cmpDni.tipoPersona === 'NATURAL' && cmpDni.nombre === 'PEREZ GARCIA JUAN' &&
+   cmpDni.numeroDocumento === '43451826', 'respuesta de DNI compatible');
+
 console.log('\n=== FORMATO FINAL ===');
 const salida = formatoRuc(emp, '20131312955');
 const esperados = ['success','ruc','nombre_o_razon_social','estado_del_contribuyente','condicion_de_domicilio',
