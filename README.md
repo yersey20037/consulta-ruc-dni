@@ -68,6 +68,9 @@ npm run actualizar-padron
 npm start
 ```
 
+> Para instalar en un servidor de produccion (PM2 como servicio, firewall,
+> arranque automatico), ver **[INSTALAR.md](INSTALAR.md)**.
+
 `npm run actualizar-padron` descarga el ZIP y arma la base. **Tarda unos
 10-12 minutos** la primera vez, casi todo en la carga a SQLite.
 
