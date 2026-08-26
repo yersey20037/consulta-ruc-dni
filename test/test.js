@@ -141,6 +141,30 @@ const cmpDni = compat.respuestaDni({ nombre: 'PEREZ GARCIA JUAN' }, '43451826').
 ok(cmpDni.tipoPersona === 'NATURAL' && cmpDni.nombre === 'PEREZ GARCIA JUAN' &&
    cmpDni.numeroDocumento === '43451826', 'respuesta de DNI compatible');
 
+// Hay clientes que leen `ruc`/`dni` en vez de `tipoPersona`/`numeroDocumento`.
+// Deben venir los cuatro para que ambos contratos funcionen a la vez.
+ok(cmp.ruc === '20131312955' && cmp.dni === '',
+   'RUC de empresa: ruc lleno, dni vacio');
+ok(cmpDni.ruc === '' && cmpDni.dni === '43451826',
+   'consulta por DNI: ruc vacio, dni lleno');
+
+// En un RUC 10 el DNI son los digitos 3 al 10.
+const natural = compat.respuestaRuc({ ...base, ruc: '10452159428' }, '10452159428').data;
+ok(natural.ruc === '10452159428' && natural.dni === '45215942',
+   `RUC 10: ruc y dni derivado (${natural.dni})`);
+
+// Simula la decision de cada cliente: ninguno debe quedarse sin documento.
+const decide = (d, consultado) => {
+  const porRucDni = (consultado.length === 11 && d.ruc.trim()) ? d.ruc : d.dni;
+  const porTipo = d.numeroDocumento;
+  return { porRucDni, porTipo };
+};
+for (const [dato, consultado] of [[cmp, '20131312955'], [natural, '10452159428'], [cmpDni, '43451826']]) {
+  const r = decide(dato, consultado);
+  ok(!!r.porRucDni && !!r.porTipo,
+     `${consultado}: ambos contratos resuelven documento (${r.porRucDni} / ${r.porTipo})`);
+}
+
 console.log('\n=== FORMATO FINAL ===');
 const salida = formatoRuc(emp, '20131312955');
 const esperados = ['success','ruc','nombre_o_razon_social','estado_del_contribuyente','condicion_de_domicilio',

@@ -155,6 +155,8 @@ curl "http://localhost:8080/read.php?ruc=20512963545"
 ```json
 {
   "data": {
+    "ruc": "20512963545",
+    "dni": "",
     "tipoPersona": "JURIDICA",
     "numeroDocumento": "20512963545",
     "nombre": "ZONA INFORMATICA DIGITAL S.R.L.",
@@ -173,6 +175,15 @@ curl "http://localhost:8080/read.php?ruc=20512963545"
 Diferencias con el formato propio: los datos van anidados bajo `data`, los
 nombres son camelCase, y cuando no hay resultado devuelve el texto literal
 `false` en vez de un JSON de error.
+
+El documento se devuelve por partida doble a propósito: hay clientes que
+leen `tipoPersona` + `numeroDocumento` y otros que leen `ruc` + `dni` por
+separado. Se incluyen los cuatro para que ambos contratos funcionen contra
+el mismo endpoint; cada cliente toma los que conoce e ignora el resto.
+
+En una consulta por RUC, `ruc` va lleno y `dni` vacío (salvo en un RUC de
+persona natural, donde `dni` trae los dígitos 3 al 10). En una consulta por
+DNI es al revés.
 
 `tipoPersona` no viene en el padrón: se deduce del RUC (los que empiezan en
 `10`, `15` o `17` son personas naturales; el resto, jurídicas).

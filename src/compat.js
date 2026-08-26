@@ -7,11 +7,13 @@
  * Se diferencia del formato propio en tres cosas:
  *   - los datos van anidados bajo `data`;
  *   - los nombres de campo son camelCase (tipoVia, nombreVia, ...);
- *   - incluye `tipoPersona`, que el Padron Reducido no trae y aqui se
- *     deduce del propio RUC.
+ *   - incluye campos que el Padron Reducido no trae y aqui se deducen.
  *
- * Existe para no tener que recompilar clientes que ya funcionaban contra
- * ese contrato. El formato propio (/ruc/, /dni/) no cambia.
+ * Hay clientes que leen `tipoPersona` + `numeroDocumento` y otros que leen
+ * `ruc` + `dni` por separado. Se devuelven TODOS: cada cliente toma los que
+ * conoce e ignora el resto, asi uno solo sirve a todos sin recompilarlos.
+ *
+ * El formato propio (/ruc/, /dni/) no cambia.
  */
 
 /**
@@ -30,10 +32,19 @@ function tipoPersona(ruc) {
  * `documento` es lo que consulto el cliente (RUC de 11 o DNI de 8).
  */
 function respuestaRuc(r, documento) {
+  const nro = r.ruc || documento;
+  const natural = tipoPersona(nro) === 'NATURAL';
+
   return {
     data: {
-      tipoPersona: tipoPersona(r.ruc || documento),
-      numeroDocumento: r.ruc || documento,
+      // Para clientes que leen `ruc` y `dni` por separado y deciden segun
+      // cual venga lleno. En un RUC de persona natural (10) el DNI son los
+      // digitos 3 al 10.
+      ruc: nro,
+      dni: natural && nro.length === 11 ? nro.slice(2, 10) : '',
+      // Para clientes que leen `tipoPersona` y `numeroDocumento`.
+      tipoPersona: tipoPersona(nro),
+      numeroDocumento: nro,
       nombre: r.nombre_o_razon_social || '',
       estado: r.estado_del_contribuyente || '',
       condicionDomicilio: r.condicion_de_domicilio || '',
@@ -59,6 +70,10 @@ function respuestaRuc(r, documento) {
 function respuestaDni(r, dni) {
   return {
     data: {
+      // Consulta por DNI: `ruc` va vacio para que los clientes que miran
+      // ese campo caigan por la rama del DNI.
+      ruc: '',
+      dni,
       tipoPersona: 'NATURAL',
       numeroDocumento: dni,
       nombre: r.nombre || '',
